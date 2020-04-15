@@ -26,7 +26,8 @@ envAdd = M.insert
 
 envLookup :: Text -> Env -> Maybe (Expr Text)
 envLookup = M.lookup
-
+ 
+-- TODO: alpha reduction
 reduce :: Expr Text -> ReduceM (Expr Text)
 reduce (Lit x) = maybe (Lit x) id . envLookup x <$> get
 reduce (Lambda x body) = Lambda x <$> reduce body

@@ -1,4 +1,5 @@
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE FlexibleInstances #-}
 
 module Ast where
 
@@ -29,7 +30,17 @@ data Expr a =
     Lambda a (Expr a)
   | Lit a
   | Apply (Expr a) (Expr a)
-  deriving (Show, Eq)
+  deriving (Eq)
+
+instance Show a => Show (Expr a) where
+  show (Lambda x body) = "λ" ++ (show x) ++ "." ++ show body
+  show (Apply f x) = show f ++ " " ++ show x
+  show (Lit x) = show x
+
+instance {-# Overlapping #-} Show (Expr Text) where
+  show (Lambda x body) = "λ" ++ (T.unpack x) ++ "." ++ show body
+  show (Apply f x) = show f ++ " " ++ show x
+  show (Lit x) = T.unpack x
 
 parseAtomicExpr :: Parsec Text () (Expr Text)
 parseAtomicExpr = 
