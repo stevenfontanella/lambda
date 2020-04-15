@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -28,11 +29,14 @@ envLookup = M.lookup
 
 reduce :: Expr Text -> ReduceM (Expr Text)
 reduce (Lit x) = maybe (Lit x) id . envLookup x <$> get
-reduce (Apply f x) = do
-  -- f should be a lambda, otherwise this expression doesn't make sense
-  let Lambda param body = f
-  modify $ envAdd param x
-  reduce body
+reduce (Lambda x body) = Lambda x <$> reduce body
+reduce (Apply f x) =
+  reduce f >>= \case
+    Lambda param body -> do
+        modify $ envAdd param x
+        reduce body
+    lit@(Lit _) -> Apply lit <$> reduce x
+    app@(Apply g y) -> (`Apply` x) <$> reduce app
 
 runReduceM :: ReduceM a -> a
 runReduceM (ReduceM m) = runIdentity $ evalStateT m M.empty 

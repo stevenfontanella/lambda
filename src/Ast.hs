@@ -47,7 +47,7 @@ parseIdentifier = do
   rest <- many (letter <|> digit)
   let iden = T.cons first $ T.pack rest
   when (iden `elem` ["λ", "lambda"]) $
-    fail ""
+    fail "Can't use lambda as an identifier"
   return iden
 
 parseLambda :: Parsec Text () (Expr Text)
