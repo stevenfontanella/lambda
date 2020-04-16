@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b3263d0535b5d33b0180ce94feffeb6250deddf321ce9b72d36b9f7aabd798b2
+-- hash: dc49e0146d4e8767ca46e9af6b0356cd5a1ba542306ff664f482e21625093495
 
 name:           lambda
 version:        0.1.0.0
@@ -30,6 +30,7 @@ library
       Ast
       Lib
       Reduce
+      Util
   other-modules:
       Paths_lambda
   hs-source-dirs:

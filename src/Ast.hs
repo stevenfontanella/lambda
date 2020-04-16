@@ -39,8 +39,20 @@ instance Show a => Show (Expr a) where
 
 instance {-# Overlapping #-} Show (Expr Text) where
   show (Lambda x body) = "λ" ++ (T.unpack x) ++ "." ++ show body
-  show (Apply f x) = show f ++ " " ++ show x
+  -- show (Apply f x) = "(" ++ show f ++ " " ++ show x ++ ")"
+  show (Apply f x) =
+    showF ++ " " ++ case x of
+        x@(Apply g y) -> "(" ++ show x ++ ")"
+        x@(Lambda g y) -> "(" ++ show x ++ ")"
+        x -> show x
+    where
+      showF = case f of
+        Lambda x body -> "(" ++ show f ++ ")"
+        _ -> show f
   show (Lit x) = T.unpack x
+
+infixl 9 .$
+(.$) = Apply
 
 parseAtomicExpr :: Parsec Text () (Expr Text)
 parseAtomicExpr = 
