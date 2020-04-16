@@ -29,6 +29,8 @@ library:
     - parsec
     - mtl
     - containers
+    - dlist
+    - lens
 
 executables:
   lambda-exe:
@@ -53,3 +55,5 @@ tests:
     - lambda
     - hspec
     - text
+    - containers
+    - dlist

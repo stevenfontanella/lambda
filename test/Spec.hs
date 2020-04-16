@@ -1,5 +1,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
+import qualified Data.DList as DL
+import qualified Data.Map as M
+
 import Test.Hspec
 import Ast
 import Reduce hiding (reduce)
@@ -37,6 +40,9 @@ main = hspec $ do
     specify "S I I" $
       runReduction ((s .$ i .$ i) .$ Lit "a") `shouldBe` (Lit "a" .$ Lit "a")
     specify "S (K ( S I )) K" $
-      runReduction ((s .$ ((k .$ (s .$ i)) .$ k)) .$ Lit "a" .$ Lit "b") `shouldBe` (Lit "b" .$ Lit "a")
+      runReduction ((s' .$ ((k' .$ (s' .$ i')) .$ k')) .$ Lit "a" .$ Lit "b") `shouldBe` (Lit "b" .$ Lit "a")
+
+    specify "logging" $
+      runReductionWithSteps ((s .$ i .$ i) .$ Lit "a") `shouldBe` (Lit "a", ReduceState{_env=M.empty, _reductions=DL.empty})
     -- specify "S K" $
     --   runReduction (s .$ k) `shouldBe` k

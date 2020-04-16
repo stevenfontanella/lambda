@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dc49e0146d4e8767ca46e9af6b0356cd5a1ba542306ff664f482e21625093495
+-- hash: 93ac2c0da4fb22fbe40e9468a8f5c68fa8bf7f000f93b2378ba2466b692dcadb
 
 name:           lambda
 version:        0.1.0.0
@@ -38,6 +38,8 @@ library
   build-depends:
       base >=4.7 && <5
     , containers
+    , dlist
+    , lens
     , mtl
     , parsec
     , text
@@ -65,6 +67,8 @@ test-suite lambda-test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.7 && <5
+    , containers
+    , dlist
     , hspec
     , lambda
     , text

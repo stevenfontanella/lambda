@@ -51,8 +51,6 @@ instance {-# Overlapping #-} Show (Expr Text) where
         _ -> show f
   show (Lit x) = T.unpack x
 
-infixl 9 .$
-(.$) = Apply
 
 parseAtomicExpr :: Parsec Text () (Expr Text)
 parseAtomicExpr = 

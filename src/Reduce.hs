@@ -1,3 +1,4 @@
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -9,38 +10,68 @@ module Reduce where
 import Ast
 import Data.Map (Map)
 import qualified Data.Map as M
-import Data.Text
+import Data.Text (Text)
+import Data.Foldable
+import Data.DList (DList)
+import qualified Data.DList as DL
 import Control.Monad
 import Control.Monad.Identity
 import Control.Monad.Reader
 import Control.Monad.State
+import Control.Lens
+import Control.Lens.TH
+
+import Debug.Trace
 
 type Env = Map Text (Expr Text)
+data ReduceState = ReduceState
+ { _env :: Env
+ , _reductions :: DList (Expr Text)
+ } deriving (Show, Eq)
 
-newtype ReduceM a = ReduceM {
-  getReduceM :: StateT Env Identity a
-} deriving (Functor, Applicative, Monad, MonadState Env)
+$(makeLenses ''ReduceState)
 
-envAdd :: Text -> Expr Text -> Env -> Env 
-envAdd = M.insert
+newtype ReduceT m a = ReduceT {
+  getReduceT :: StateT ReduceState m a
+} deriving (Functor, Applicative, Monad, MonadState ReduceState)
 
-envLookup :: Text -> Env -> Maybe (Expr Text)
-envLookup = M.lookup
- 
+type ReduceM = ReduceT Identity
+
+envAdd :: Text -> Expr Text -> ReduceM ()
+envAdd key value = env %= M.insert key value
+
+envLookup :: Text -> ReduceM (Maybe (Expr Text))
+envLookup key = M.lookup key <$> use env 
+
+logReduction :: Expr Text -> ReduceM ()
+logReduction expr = reductions %= flip DL.snoc expr
+
 -- TODO: alpha reduction
 reduce :: Expr Text -> ReduceM (Expr Text)
-reduce (Lit x) = maybe (Lit x) id . envLookup x <$> get
-reduce (Lambda x body) = Lambda x <$> reduce body
+reduce (Lit x) = maybe (Lit x) id <$> envLookup x
+reduce (Lambda x body) = Lambda x <$> reduceStep body
 reduce (Apply f x) =
-  reduce f >>= \case
+  reduceStep f >>= \case
     Lambda param body -> do
-        modify $ envAdd param x
-        reduce body
-    lit@(Lit _) -> Apply lit <$> reduce x
-    app@(Apply g y) -> (`Apply` x) <$> reduce app
+        envAdd param x
+        reduceStep body
+    lit@(Lit _) -> Apply lit <$> reduceStep x
+    app@(Apply g y) -> (`Apply` x) <$> reduceStep app
 
-runReduceM :: ReduceM a -> a
-runReduceM (ReduceM m) = runIdentity $ evalStateT m M.empty 
+reduceStep :: Expr Text -> ReduceM (Expr Text)
+reduceStep expr = do
+  logReduction expr 
+  length <$> use reductions >>= \numSteps -> if numSteps < 50 then reduce expr else pure expr
+
+-- TODO: names of these
+runReduceT :: ReduceM a -> a 
+runReduceT (ReduceT m) = runIdentity $ evalStateT m ReduceState{_env=M.empty, _reductions=DL.empty}
+
+execReduceT :: ReduceM a -> (a, ReduceState)
+execReduceT (ReduceT m) = runIdentity $ runStateT m ReduceState{_env=M.empty, _reductions=DL.empty}
 
 runReduction :: Expr Text -> Expr Text
-runReduction = runReduceM . reduce
+runReduction = runReduceT . reduceStep
+
+runReductionWithSteps :: Expr Text -> (Expr Text, ReduceState)
+runReductionWithSteps = execReduceT . reduceStep
