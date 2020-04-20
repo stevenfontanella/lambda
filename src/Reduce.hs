@@ -14,6 +14,7 @@ import Data.Text (Text)
 import Data.Foldable
 import Data.DList (DList)
 import qualified Data.DList as DL
+import Control.Applicative
 import Control.Monad
 import Control.Monad.Identity
 import Control.Monad.Reader
@@ -58,13 +59,14 @@ reduce (Apply f x) =
     Lambda param body -> do
         envAdd param x
         reduceStep body
-    lit@(Lit _) -> Apply lit <$> reduceStep x
+    lit@(Lit _) -> liftA2 Apply (reduceStep lit) (reduceStep x)
     app@(Apply g y) -> (`Apply` x) <$> reduceStep app
 
 reduceStep :: Expr Text -> ReduceM (Expr Text)
 reduceStep expr = do
   logReduction expr 
-  length <$> use reductions >>= \numSteps -> if numSteps < 50 then reduce expr else pure expr
+  reduce expr
+  -- length <$> use reductions >>= \numSteps -> if numSteps < 50 then reduce expr else pure expr
 
 -- TODO: names of these
 runReduceT :: ReduceM a -> a 

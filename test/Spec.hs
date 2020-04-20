@@ -39,8 +39,8 @@ main = hspec $ do
       reduce "f x" `shouldBe` Right (Apply (Lit "f") (Lit "x"))
     specify "S I I" $
       runReduction ((s .$ i .$ i) .$ Lit "a") `shouldBe` (Lit "a" .$ Lit "a")
-    -- specify "S (K ( S I )) K" $
-    --   runReduction ((s' .$ ((k' .$ (s' .$ i')) .$ k')) .$ Lit "a" .$ Lit "b") `shouldBe` (Lit "b" .$ Lit "a")
+    specify "S (K ( S I )) K" $
+      runReduction ((s' .$ ((k' .$ (s' .$ i')) .$ k')) .$ Lit "a" .$ Lit "b") `shouldBe` (Lit "b" .$ Lit "a")
 
     -- specify "S K" $
     --   runReduction (s .$ k) `shouldBe` k
