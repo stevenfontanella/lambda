@@ -1,1 +1,1 @@
-# lambda
+Lambda calculus interpreter
