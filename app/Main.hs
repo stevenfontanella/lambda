@@ -11,9 +11,8 @@ import Ast
 
 main :: IO ()
 main = do
-
   let (expr, ReduceState{_env=_, _reductions=reductions}) = runReductionWithSteps ((s .$ i .$ i) .$ Lit "a")
   putStrLn $ unlines $ map show $ toList reductions
-
+  print expr
 
   return ()

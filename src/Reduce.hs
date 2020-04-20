@@ -1,9 +1,9 @@
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Reduce where
 
@@ -19,7 +19,6 @@ import Control.Monad.Identity
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Lens
-import Control.Lens.TH
 
 import Debug.Trace
 
@@ -29,7 +28,11 @@ data ReduceState = ReduceState
  , _reductions :: DList (Expr Text)
  } deriving (Show, Eq)
 
-$(makeLenses ''ReduceState)
+env :: Lens' ReduceState Env
+env f ReduceState{_env=e, ..} = (\e -> ReduceState{_env=e, ..}) <$> f e
+
+reductions :: Lens' ReduceState (DList (Expr Text))
+reductions f ReduceState{_reductions=r, ..} = (\r -> ReduceState{_reductions=r, ..}) <$> f r
 
 newtype ReduceT m a = ReduceT {
   getReduceT :: StateT ReduceState m a
