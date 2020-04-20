@@ -92,7 +92,7 @@ parseApply =
 
 parseExpr :: Parsec Text () (Expr Text)
 parseExpr = 
-  try parseApply <|> parseLambda <|> parseAtomicExpr 
+  parseLambda <|> parseApply
 
 parseLambdaExpr :: Text -> Either ParseError (Expr Text)
 parseLambdaExpr = parse (spaces *> parseExpr <* eof) ""
